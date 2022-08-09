@@ -694,8 +694,8 @@ y$gen(5, rhs_val = TRUE) |> y$as_dataframe()
 ```
 
 
----
+<!-- --- -->
 
-#### Please check [some of the classes I wrote](https://github.com/TengMCing/visage/tree/master/R) and the [reference page](https://tengmcing.github.io/visage/reference/index.html).
+<!-- #### Please check [some of the classes I wrote](https://github.com/TengMCing/visage/tree/master/R) and the [reference page](https://tengmcing.github.io/visage/reference/index.html). -->
 
-#### So far I have written 10 classes for my visual inference research using this system. It works well for me and it is very easy to debug since the design is simple.
+<!-- #### So far I have written 10 classes for my visual inference research using this system. It works well for me and it is very easy to debug since the design is simple. -->
