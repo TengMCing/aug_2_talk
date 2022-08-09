@@ -5,6 +5,7 @@ institute: "Data Science Research Software Study Group (a.k.a. Brown Bag Session
 date: "`r Sys.Date()`"
 output:
   xaringan::moon_reader:
+    self_contained: true
     css: ["xaringan-themer.css"]
     nature:
       highlightStyle: monokai
