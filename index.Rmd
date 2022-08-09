@@ -1,0 +1,701 @@
+---
+title: "**Making your own OOP system in `R`**"
+author: "Patrick Li"
+institute: "Data Science Research Software Study Group (a.k.a. Brown Bag Session)"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: ["xaringan-themer.css"]
+    nature:
+      highlightStyle: monokai
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+library(xaringanthemer)
+style_solarized_dark(
+  header_font_google = google_font("Josefin Sans"),
+  text_font_google   = google_font("Montserrat", "300", "300i"),
+  code_font_google   = google_font("Fira Mono")
+)
+```
+
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure
+
+---
+
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure
+
+- `memory` to represent complex data structures
+
+For example, this is how `R internal` accesses **integers** from an **integer vector**
+
+<!-- This C macro is adopted from: r-source/src/include/Defn.h -->
+
+```markdown
+This C macro is adopted from: r-source/src/include/Defn.h
+
+    Treat every 4 bytes of a memory block as a signed integer
+                   ↓~~~~~↓
+#define INTEGER(x) (int *) (((SEXPREC_ALIGN *) x) + 1)
+                           ↑~~~~~~~~~~~~~~~~~~~~~~~~~↑
+    Use pointer arithmetic to skip the header, e.g. vector length
+    
+                x        INTEGER(x)[0]   INTEGER(x)[1]
+                ↓        ↓               ↓
+               *--------*---------------*---------------*
+Memomry Model: | Header | 4 bytes (int) | 4 bytes (int) | ...
+               *--------*---------------*---------------*
+```
+
+---
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure 
+
+- `memory` to represent complex data structures
+- `functions` to group code that performs a specific task together
+
+A untested and inefficient Fibonacci number generator
+
+```r
+fib <- function(k) ifelse(k > 2, fib(k - 1) + fib(k - 2), k - 1) 
+```
+
+---
+
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure 
+
+- `memory` to represent complex data structures
+- `functions` to group code that performs a specific task together
+- `Loops` to perform operations repetitively over a container
+
+Bubble sort
+
+```r
+x <- rnorm(100)
+for (i in 1:(length(x) - 1)) 
+  for (j in 1:(length(x) - i))
+    if (x[j] > x[j + 1]) 
+    {
+      tmp_x <- x[j]
+      x[j] <- x[j + 1]
+      x[j + 1] <- tmp_x
+    }
+```
+
+---
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+> There are no zero-cost abstraction. Abstractions have **run time**, **build time**, and **human costs**.
+
+- Every `R` expression needs to be **parsed**, **compiled** and **interpreted** by the `R` Runtime. 
+
+Every function call has a run time cost
+
+```{r}
+x <- y <- 2
+foo <- function(x, y) x * y
+microbenchmark::microbenchmark(x * y, foo(x, y), times = 10000)
+```
+
+
+```{r echo=FALSE}
+rm(x, y)
+```
+
+
+---
+
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+> There are no zero-cost abstraction. Abstractions have **run time**, **build time**, and **human costs**.
+
+- Every `R` expression needs to be **parsed**, **compiled** and **interpreted** by the `R` Runtime. 
+- Zero run time and build time costs doesn't necessary mean zero human costs.
+
+---
+
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+> There are no zero-cost abstraction. Abstractions have **run time**, **build time**, and **human costs**.
+
+- Every `R` expression needs to be **parsed**, **compiled** and **interpreted** by the `R` Runtime. 
+- Zero run time and build time costs doesn't necessary mean zero human costs.
+
+> Each abstraction must provide more benefit than cost.
+
+---
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure 
+
+- `memory` to represent complex data structures
+- `functions` to group code that performs a specific task together
+- `Loops` to perform operations repetitively over a container
+
+**OOP** to group instructions with the state they operate on?
+
+---
+
+count: false
+
+# Abstraction
+
+Inspired by the CppCon 2019 talk - Chandler Carruth “There Are No Zero-cost Abstractions”
+
+In `R`, we use **abstraction** to describe data and data analysis procedure 
+
+- `memory` to represent complex data structures
+- `functions` to group code that performs a specific task together
+- `Loops` to perform operations repetitively over a container
+
+**OOP** to group instructions with the state they operate on?
+
+Sure, as long as it produces more **human-readable code** with **acceptable overhead**.
+
+---
+
+# OOP
+
+**OOP** stands for **object-oriented programming**, which is a programming paradigm based on **objects**. Usually, object is defined as a special type of data structure that can hold both **attributes** (data) and **methods** (associated behaviours). 
+
+`R` has built-in **OOP** systems
+- `S3`
+- `S4`
+
+There is another popular **OOP** system `R6` developed by Winston Chang. 
+
+More details can be found in [Advanced R](https://adv-r.hadley.nz/oo.html). 
+
+We will not focus on comparing them in this talk.
+
+---
+
+# `bandicoot`
+
+```{r echo = FALSE}
+library(bandicoot)
+```
+
+Some programming languages are fundamentally built upon **OOP** such as `Python`. 
+
+--
+
+`bandicoot` tries to provide a set of tools to build `Python-like` **OOP** system in `R`.
+
+```r
+devtools::install_github("TengMCing/bandicoot")
+library(bandicoot)
+```
+
+--
+
+- started in last year's Christmas holiday
+- originally built for defining hierarchical structures of models used in visual inference experiments
+
+--
+
+### `bandicoot` used `environment` to emulate the **OOP** system
+
+#### which is similar to `R6`, but built differerntly
+
+---
+
+# `environment`
+
+Every `R` `function` associates with an `environment`. 
+
+```{r}
+environment(function(){})
+```
+
+--
+
+An `environment` can reference itself with proper setup.
+
+```{r}
+env <- new.env()
+env$self <- env #<<
+identical(env, env$self)
+```
+
+--
+
+A `function` can access its `enclosing environment` in the `function body`.
+
+```{r}
+env$foo <- function() self
+environment(env$foo) <- env #<<
+identical(env, env$foo())
+```
+
+---
+
+# `environment`
+
+To prevent function from directly accessing attributes other than `self`, an additional `environment` is needed with the `parent environment` to be the same.
+
+```{r}
+env <- new.env()
+env$x <- 1
+env$..method_env.. <- new.env(parent = parent.env(env))
+env$..method_env..$self <- env
+
+lobstr::tree(env)
+```
+
+--
+
+```{r}
+env$foo <- function() x
+environment(env$foo) <- env$..method_env..
+
+try(env$foo())
+```
+
+```{r echo = FALSE}
+rm(foo, envir = env)
+```
+
+
+---
+
+count: false
+
+# `environment`
+
+To prevent function from directly accessing attributes other than `self`, an additional `environment` is needed with the `parent environment` to be the same.
+
+```r
+env <- new.env()
+env$x <- 1
+env$..method_env.. <- new.env(parent = parent.env(env))
+env$..method_env..$self <- env
+
+lobstr::tree(env)
+```
+
+```{r echo = FALSE}
+lobstr::tree(env)
+```
+
+
+```{r}
+env$foo2 <- function() self$x
+environment(env$foo2) <- env$..method_env..
+try(env$foo2())
+```
+
+---
+
+# `register_method()`
+
+All this can be done by `register_method()`
+
+```{r}
+env <- new.env()
+env$x <- 1
+register_method(env, foo = function() self$x)
+
+lobstr::tree(env)
+```
+
+---
+
+# `register_method()`
+
+The container and the self pointer name can be customized
+
+```{r}
+env <- new.env()
+foo2 <- function() this$x + 1
+register_method(env, foo_two = foo2, foo_three = foo2, 
+                container_name = "container", self_name = "this")
+
+lobstr::tree(env)
+```
+
+---
+
+# `BASE` class
+
+In `Python`, there is an `object` class, which provides essential attributes and methods for the OOP system (check [data model](https://docs.python.org/3/reference/datamodel.html) for more details).
+
+In `bandicoot`, `BASE` class is the default `object` class, but you can write your own if you want advanced features.
+
+```{r}
+names(BASE)
+```
+
+---
+
+# `new_class()`
+
+`new_class()` is used for defining a new class, including new `object` class. 
+
+```{r}
+new_class(BASE, class_name = "CAT")
+```
+
+
+- `bandicoot`: **static method dispatch**. Method that needs to be called is decided at "build" time.
+- `Python`: **dynamic method dispatch**. Method that needs to be called is decided at run time.
+
+Primary concern is the overhead of **dynamic method lookup** and the difficulty of managing relationships between saved environments.
+
+---
+
+# Features of `BASE`
+
+String representation of the object
+
+```{r}
+CAT <- new_class(BASE, class_name = "CAT")
+CAT$..str..()
+```
+
+---
+
+count: false
+
+# Features of `BASE`
+
+Parent class and the object class name
+
+```{r}
+CAT$..bases..
+CAT$..type..
+```
+
+---
+
+count: false
+
+# Features of `BASE`
+
+Class **constructor** and **initializer** (a **virtual function**)
+
+```{r}
+CAT$..new..()
+CAT$..init..
+```
+
+---
+
+count: false
+
+# Features of `BASE`
+
+Class instantiation 
+
+```{r}
+little_cat <- CAT$instantiate()
+little_cat$..str..()
+```
+
+"Official" String representation of the object
+
+```{r}
+little_cat$..repr..()
+```
+
+---
+
+# Workflow
+
+This is a simple `STAFF` class defined in `Python`
+
+```python
+class STAFF(object):
+    
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+    def get_email(self):
+        return f"ʕ•́ᴥ•̀ʔっ♡{self.name}@company.com"
+```
+
+---
+
+# Workflow
+
+Define a class with class description (a class factory)
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) {
+  
+  new_class(BASE, env = env, class_name = "STAFF")
+  
+  init_ <- function(name, age) {
+    self$name <- name
+    self$age <- age
+  }
+  
+  get_email_ <- function() {
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com")
+  }
+  
+  register_method(env, ..init.. = init_, get_email = get_email_)
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+
+---
+
+# Workflow
+
+#### 1. New an environment `env` if it is not provided
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { #<<
+  
+  new_class(BASE, env = env, class_name = "STAFF")
+  
+  init_ <- function(name, age) {
+    self$name <- name
+    self$age <- age
+  }
+  
+  get_email_ <- function() {
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com")
+  }
+  
+  register_method(env, ..init.. = init_, get_email = get_email_)
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+---
+
+# Workflow
+
+#### 2. New a class `STAFF` in the environment `env`
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { 
+  
+  new_class(BASE, env = env, class_name = "STAFF") #<<
+  
+  init_ <- function(name, age) {
+    self$name <- name
+    self$age <- age
+  }
+  
+  get_email_ <- function() {
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com")
+  }
+  
+  register_method(env, ..init.. = init_, get_email = get_email_)
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+---
+
+# Workflow
+
+#### 3. Define the initializer `..init..` to capture `name` and `age`
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { 
+  
+  new_class(BASE, env = env, class_name = "STAFF") 
+  
+  init_ <- function(name, age) { #<<
+    self$name <- name            #<<
+    self$age <- age              #<<
+  }                              #<<
+  
+  get_email_ <- function() {
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com")
+  }
+  
+  register_method(env, ..init.. = init_, get_email = get_email_)
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+
+---
+
+# Workflow
+
+#### 4. Define a method `get_email` to get the email address
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { 
+  
+  new_class(BASE, env = env, class_name = "STAFF") 
+  
+  init_ <- function(name, age) { 
+    self$name <- name            
+    self$age <- age              
+  }                              
+  
+  get_email_ <- function() {              #<<
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com") #<<
+  }                                       #<<
+  
+  register_method(env, ..init.. = init_, get_email = get_email_)
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+---
+
+# Workflow
+
+#### 5. Register methods
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { 
+  
+  new_class(BASE, env = env, class_name = "STAFF") 
+  
+  init_ <- function(name, age) { 
+    self$name <- name            
+    self$age <- age              
+  }                              
+  
+  get_email_ <- function() {              
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com") 
+  }                                       
+  
+  register_method(env, ..init.. = init_, get_email = get_email_) #<<
+  
+  return(env)
+}
+
+STAFF <- class_STAFF()
+```
+
+---
+
+# Workflow
+
+#### 6. Return the class/environment
+
+```{r}
+class_STAFF <- function(env = new.env(parent = parent.frame())) { 
+  
+  new_class(BASE, env = env, class_name = "STAFF") 
+  
+  init_ <- function(name, age) { 
+    self$name <- name            
+    self$age <- age              
+  }                              
+  
+  get_email_ <- function() {              
+    glue::glue("ʕ•́ᴥ•̀ʔっ♡{self$name}@company.com") 
+  }                                       
+  
+  register_method(env, ..init.. = init_, get_email = get_email_) 
+  
+  return(env) #<<
+}
+
+STAFF <- class_STAFF()
+```
+
+---
+
+# Workflow
+
+#### 7. Build an instance of class `STAFF`
+
+```{r}
+Patrick <- STAFF$instantiate(name = "Patrick", age = 18)
+```
+
+#### 8. Get name, age, and email of the object
+
+```{r}
+Patrick$name
+Patrick$age
+Patrick$get_email()
+```
+
+---
+
+# More realistic examples
+
+$$y_i = x_i + e_i, \quad e_i \sim N(0, 1+x_i^2), \quad i=1,...,n.$$
+
+```{r}
+library(visage)
+z <- rand_normal(mu = 0, sigma = 1)
+x <- rand_uniform(-1, 1)
+e <- closed_form(~sqrt(1 + x^2) * z)
+y <- closed_form(~x + e)
+y
+```
+
+
+---
+
+# More realistic examples
+
+```{r}
+y$gen(5, rhs_val = TRUE) |> y$as_dataframe()
+```
+
+
+<!-- --- -->
+
+<!-- #### Please check [some of the classes I wrote](https://github.com/TengMCing/visage/tree/master/R) and the [reference page](https://tengmcing.github.io/visage/reference/index.html). -->
+
+<!-- #### So far I have written 10 classes for my visual inference research using this system. It works well for me and it is very easy to debug since the design is simple. -->

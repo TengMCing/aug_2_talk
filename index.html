@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="author" content="Patrick Li" />
     <meta name="date" content="2022-08-09" />
-    <script src="talk_files/header-attrs-2.11/header-attrs.js"></script>
+    <script src="index_files/header-attrs-2.11/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -127,15 +127,10 @@ microbenchmark::microbenchmark(x * y, foo(x, y), times = 10000)
 ```
 
 ```
-## Warning in microbenchmark::microbenchmark(x * y, foo(x, y), times = 10000):
-## Could not measure a positive execution time for one evaluation.
-```
-
-```
 ## Unit: nanoseconds
-##       expr min  lq     mean median  uq      max neval cld
-##      x * y   0  42   57.013     42  43    11293 10000   a
-##  foo(x, y) 209 251 1832.132    292 293 15267334 10000   a
+##       expr min  lq      mean median  uq      max neval cld
+##      x * y   0  42   51.1955     42  43     4917 10000   a
+##  foo(x, y) 167 250 1772.0337    251 251 14845000 10000   a
 ```
 
 
@@ -308,10 +303,10 @@ lobstr::tree(env)
 ```
 
 ```
-## &lt;environment: 0x7faca4ede208&gt;
+## &lt;environment: 0x7f9ca8a5e668&gt;
 ## ├─x: 1
-## └─..method_env..: &lt;environment: 0x7faca4f94010&gt;
-##   └─self: &lt;environment: 0x7faca4ede208&gt; (Already seen)
+## └─..method_env..: &lt;environment: 0x7f9ca8b00400&gt;
+##   └─self: &lt;environment: 0x7f9ca8a5e668&gt; (Already seen)
 ```
 
 --
@@ -350,10 +345,10 @@ lobstr::tree(env)
 
 
 ```
-## &lt;environment: 0x7faca4ede208&gt;
+## &lt;environment: 0x7f9ca8a5e668&gt;
 ## ├─x: 1
-## └─..method_env..: &lt;environment: 0x7faca4f94010&gt;
-##   └─self: &lt;environment: 0x7faca4ede208&gt; (Already seen)
+## └─..method_env..: &lt;environment: 0x7f9ca8b00400&gt;
+##   └─self: &lt;environment: 0x7f9ca8a5e668&gt; (Already seen)
 ```
 
 
@@ -384,11 +379,11 @@ lobstr::tree(env)
 ```
 
 ```
-## &lt;environment: 0x7faca01cdb00&gt;
+## &lt;environment: 0x7f9caeccd3a0&gt;
 ## ├─x: 1
 ## ├─foo: function()
-## └─..method_env..: &lt;environment: 0x7faca0186968&gt;
-##   └─self: &lt;environment: 0x7faca01cdb00&gt; (Already seen)
+## └─..method_env..: &lt;environment: 0x7f9cbd937eb8&gt;
+##   └─self: &lt;environment: 0x7f9caeccd3a0&gt; (Already seen)
 ```
 
 ---
@@ -408,9 +403,9 @@ lobstr::tree(env)
 ```
 
 ```
-## &lt;environment: 0x7facc0eeccf8&gt;
-## ├─container: &lt;environment: 0x7facc0f92240&gt;
-## │ └─this: &lt;environment: 0x7facc0eeccf8&gt; (Already seen)
+## &lt;environment: 0x7f9c9e1fdb10&gt;
+## ├─container: &lt;environment: 0x7f9c9cbee8c8&gt;
+## │ └─this: &lt;environment: 0x7f9c9e1fdb10&gt; (Already seen)
 ## ├─foo_two: function()
 ## └─foo_three: function()
 ```
@@ -529,7 +524,7 @@ CAT$..init..
 
 ```
 ## function(...) return(invisible(self))
-## &lt;environment: 0x7faca7323580&gt;
+## &lt;environment: 0x7f9ca9690278&gt;
 ```
 
 ---
@@ -865,12 +860,12 @@ y$gen(5, rhs_val = TRUE) |&gt; y$as_dataframe()
 ```
 
 ```
-##        .lhs          x            z            e
-## 1 0.3711051  0.3807034 -0.008970196 -0.009598257
-## 2 2.6836253  0.9404114  1.269893155  1.743213925
-## 3 0.7079751  0.9816693 -0.195312889 -0.273694247
-## 4 2.4287542 -0.9462067  2.451483408  3.374960899
-## 5 1.7085211  0.4762781  1.112505669  1.232242954
+##         .lhs          x           z           e
+## 1  1.1927819 -0.4654066  1.50334757  1.65818849
+## 2 -0.7791913 -0.8353324  0.04308637  0.05614106
+## 3 -3.2737011 -0.8531663 -1.84142037 -2.42053481
+## 4 -1.1982633 -0.4427175 -0.69086855 -0.75554581
+## 5 -0.2894376  0.5247364 -0.72094614 -0.81417399
 ```
 
 
